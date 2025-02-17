@@ -5,46 +5,55 @@
 #include <vector>
 #include <algorithm>
 
+int Count(const std::vector<int>& v, int n)
+{
+    int count = 0;
+    for (auto i : v)
+    {
+        if (i == n)
+            ++count;
+    }
 
-bool Find(const std::vector<std::vector<int>>& vv, const std::vector<int>& v)
+    return count;
+}
+
+bool Equal(const std::vector<int>& v1, const std::vector<int>& v2)
+{
+    for (auto n : v1)
+    {
+        if (Count(v1, n) != Count(v2, n))
+            return false;
+    }
+
+    return true;
+}
+
+bool Exists(const std::vector<std::vector<int>>& vv, const std::vector<int>& v)
 {
     if (vv.empty())
         return false;
 
-    bool found = true;
-    for (auto i = vv.cbegin(); i != vv.cend(); ++i)
+    for (auto& vec : vv)
     {
-        found = true;
-        for (struct { std::vector<int>::const_iterator j, jj; }s = { v.cbegin(), i->cbegin() };
-            s.j != v.cend(); ++s.j, ++s.jj)
-        {
-            if (*(s.j) != *(s.jj))
-            {
-                found = false;
-                break;
-            }
-        }
-
-        if (found)
-            break;
+        if (Equal(vec, v))
+            return true;
     }
 
-    return found;
+    return false;
 }
 
-// For this case, return type is not needed
-bool HasFourSum(const std::vector<int>& vec, int target, size_t index,
-    int count, std::vector<int>& rv, std::vector<std::vector<int>>& result)
+void HasFourSum(const std::vector<int>& vec, int target, size_t index,
+    std::vector<int>& rv, std::vector<std::vector<int>>& result)
 {
-    if (target == 0 && count == 4)
+    if (target == 0 && rv.size() == 4)
     {
-        if (!Find(result, rv))   // this quadruples is what we are looking for.
+        if (!Exists(result, rv))   // this quadruples is what we are looking for.
                                  //  add it to the result
             result.push_back(rv);
-        return true;
+        return;
     }
-    if (vec.size() == index || count == 4)
-        return false;
+    if (vec.size() == index || rv.size() == 4)
+        return;
 
     for (size_t i = index; i < vec.size(); ++i)
     {
@@ -53,25 +62,15 @@ bool HasFourSum(const std::vector<int>& vec, int target, size_t index,
         //  the quadruples and then pop the element -- even if a quadruple is
         //  found, we still want to try the next element
         rv.push_back(vec[i]);
-        HasFourSum(vec, target - vec[i], i + 1, count + 1, rv, result);
+        HasFourSum(vec, target - vec[i], i + 1, rv, result);
         rv.pop_back();
     }
-
-    return false;
-}
-
-void GetFourSum(const std::vector<int>& vec, int target, size_t index, std::vector<std::vector<int>>& result)
-{
-    std::vector<int> rv;
-    result.reserve(4);
-    int count = 0;
-    HasFourSum(vec, target, index, count, rv, result);
 }
 
 std::vector<std::vector<int>> FourSum(const std::vector<int>& A, int target)
 {
-    std::vector<int> sorted(A);
-    std::sort(sorted.begin(), sorted.end());
+    //std::vector<int> sorted(A);
+    //std::sort(sorted.begin(), sorted.end());
     //std::qsort(sorted.data(), sorted.size(), sizeof(decltype(sorted)::value_type),
     //    [](const void* pA, const void* pB)->int
     //    {
@@ -85,11 +84,10 @@ std::vector<std::vector<int>> FourSum(const std::vector<int>& A, int target)
     //    });
 
     std::vector<std::vector<int>> result;
+    std::vector<int> rv;
+    rv.reserve(4);
+    HasFourSum(A, target, 0, rv, result);
 
-    for (size_t i = 0; i < sorted.size(); ++i)
-    {
-        GetFourSum(sorted, target, i, result);
-    }
     return result;
 }
 
